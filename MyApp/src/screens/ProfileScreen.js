@@ -23,6 +23,7 @@ const ProfileScreen = () => {
   const [ratingsVisible, setRatingsVisible] = useState(false);
   const db = SQLite.useSQLiteContext();
 
+  // Handle reviews from database and show review screen
   const handleMyReviewsPress = async () => {
     try {
       const fetchedReviews = await getReviews(db);
@@ -33,6 +34,7 @@ const ProfileScreen = () => {
     }
   };
 
+  // Handle ratings from database and show ratings screen
   const handleMyRatingsPress = async () => {
     try {
       const fetchedRatings = await getRatings(db);
@@ -58,12 +60,12 @@ const ProfileScreen = () => {
       quality: 1,
     });
     if (!result.canceled) {
-      // In the new API, result.assets is an array
       setProfilePic(result.assets[0].uri);
     }
   };
   
 
+  // Function to take photo for profile picture
   const takePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
@@ -80,7 +82,7 @@ const ProfileScreen = () => {
     }
   };
   
-
+  // Alert to update profile picture
   const handleProfilePicPress = () => {
     Alert.alert(
       'Update Profile Picture',
@@ -105,12 +107,11 @@ const ProfileScreen = () => {
     );
   };
 
-  // Render a review item (unchanged)
+  // Render function for displaying review screen with album name and text
   const renderReviewItem = ({ item }) => (
     <View style={styles.reviewItem}>
       <Text style={styles.reviewAlbum}>{item.album}</Text>
       <Text style={styles.reviewText}>{item.review}</Text>
-      <Text style={styles.reviewRating}>Rating: {item.rating > 0 ? item.rating : 'N/A'}</Text>
     </View>
   );
 
@@ -134,6 +135,7 @@ const ProfileScreen = () => {
         </TouchableOpacity>
       </View>
 
+    {/* Reviews modal displays stored reviews when reviewsVisible is true */}
       {reviewsVisible && (
         <View style={styles.modalContainer}>
           <Text style={styles.modalHeader}>My Reviews</Text>
@@ -150,6 +152,7 @@ const ProfileScreen = () => {
         </View>
       )}
 
+      {/* Ratings modal displays stored ratings when ratingsVisible is true */}
       {ratingsVisible && (
         <View style={styles.modalContainer}>
           <Text style={styles.modalHeader}>My Ratings</Text>
@@ -233,10 +236,6 @@ const styles = StyleSheet.create({
   reviewText: {
     fontSize: 14,
     color: 'grey',
-  },
-  reviewRating: {
-    fontSize: 14,
-    color: 'lightgrey',
   },
   ratingItem: {
     marginBottom: 10,

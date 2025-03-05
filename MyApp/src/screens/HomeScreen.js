@@ -20,6 +20,7 @@ export default function HomeScreen() {
 
   const db = SQLite.useSQLiteContext();
 
+  // Function to retrieve new album releases from the Spotify API
   useEffect(() => {
     const fetchNewReleases = async () => {
       try {
@@ -28,7 +29,7 @@ export default function HomeScreen() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const json = await response.json();
-        if (json?.albums?.items) {
+        if (json?.albums?.items) { // If albums are found we update the state
           setAlbums(json.albums.items);
         } else {
           throw new Error('No albums found');
@@ -48,6 +49,7 @@ export default function HomeScreen() {
     setActionMenuVisible(true);
   };
 
+  // Handler functions to show the desired modal and hide the other
   const handleAddReview = () => {
     setActionMenuVisible(false);
     setReviewModalVisible(true);
@@ -59,9 +61,9 @@ export default function HomeScreen() {
   };
 
 
+  // Functions to submit review or rating, show confirmation and close modal
   const submitReview = async (reviewText) => {
     try {
-      // Save review with an empty rating (or you could combine with a star rating)
       await addReview(db, selectedAlbum.name, reviewText, 0);
       Alert.alert('Review saved!');
       setReviewModalVisible(false);
@@ -90,24 +92,19 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
+
+  // Animation to display loading icon while fetching Spotify data
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size="large" color="white" />
         </View>
       </SafeAreaView>
     );
   }
-  if (error) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Error: {error}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+
+  // Render that displays the new releases list in a 2 column fashion
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>

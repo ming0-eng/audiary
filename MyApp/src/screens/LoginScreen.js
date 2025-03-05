@@ -10,6 +10,7 @@ const LoginScreen = ({ navigation }) => {
 
   const auth = firebase_auth;
 
+  // Function to handle log in using Firebase
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -19,6 +20,7 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  // Simple input fields and button implementation
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Log In</Text>

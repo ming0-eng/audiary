@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, Button, StyleSheet } from 'react-native';
 
+// Rating modal component to display a modal for rating and submitting 
 const RatingModal = ({ visible, album, onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
 
+  // Function to render 5 stars for rating system
   const renderStars = () => {
     let stars = [];
+    // Loop for 5 stars, keep track of i to set corresponding star number and fill a star
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <TouchableOpacity key={i} onPress={() => setRating(i)}>
@@ -16,6 +19,7 @@ const RatingModal = ({ visible, album, onClose, onSubmit }) => {
     return stars;
   };
 
+  // Modal for rating, implemented animation, show album name your rating...
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.modalOverlay}>

@@ -11,6 +11,7 @@ const SignupScreen = ({ navigation }) => {
   const auth = firebase_auth;
 
   
+  // Function to handle sign up using Firebase
   const handleSignup = async () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
@@ -19,6 +20,7 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
+  // Simple input fields and button implementation
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create an Account</Text>

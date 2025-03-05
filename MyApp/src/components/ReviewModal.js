@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
+// Review modal component to display a modal for writing and submitting a review
 const ReviewModal = ({ visible, album, onClose, onSubmit }) => {
   const [reviewText, setReviewText] = useState('');
 
+  // Function to handle submit, clear input when done
   const handleSubmit = () => {
     onSubmit(reviewText);
     setReviewText('');
   };
 
+  // Modal component, implements animation, input review, text to see which album your reviewing...
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.modalOverlay}>
