@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, Button, StyleSheet } from 'react-native';
 
 // Action menu component, displays menu modal when selecting an album, implemented animation
-const AlbumActionMenu = ({ visible, album, onClose, onAddReview, onAddRating, onAddToList }) => {
+const AlbumActionMenu = ({ visible, album, onClose, onAddReview, onAddRating }) => {
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.modalOverlay}>
@@ -13,9 +13,6 @@ const AlbumActionMenu = ({ visible, album, onClose, onAddReview, onAddRating, on
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuButton} onPress={onAddRating}>
             <Text style={styles.menuButtonText}>Add Rating</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuButton} onPress={onAddToList}>
-            <Text style={styles.menuButtonText}>Add to List</Text>
           </TouchableOpacity>
           <Button title="Cancel" onPress={onClose} color="grey" />
         </View>

@@ -1,53 +1,39 @@
-import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Button,
-  Alert,
-} from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { getReviews, getRatings } from '../services/SQLiteService';
+import { firebase_auth } from '../firebaseConfig';
 
+const ProfileScreen = ({ navigation }) => {
+  const [profilePic, setProfilePic] = useState('');
 
-const ProfileScreen = () => {
-  const [profilePic, setProfilePic] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [reviewsVisible, setReviewsVisible] = useState(false);
-  const [ratings, setRatings] = useState([]);
-  const [ratingsVisible, setRatingsVisible] = useState(false);
-  const db = SQLite.useSQLiteContext();
+  // Function to load current user profile picture
+  useEffect(() => {
+    const loadProfilePic = async () => {
+      try {
+        const userId = firebase_auth.currentUser.uid;
+        const storedPic = await AsyncStorage.getItem(`profilePic_${userId}`);
+        if (storedPic !== null) {
+          setProfilePic(storedPic);
+        }
+      } catch (error) {
+        console.error('Error loading profile picture:', error);
+      }
+    };
+    loadProfilePic();
+  }, []);
 
-  // Handle reviews from database and show review screen
-  const handleMyReviewsPress = async () => {
+  // Function to save profile picture to AsyncStorage for current user
+  const saveProfilePic = async (uri) => {
     try {
-      const fetchedReviews = await getReviews(db);
-      setReviews(fetchedReviews);
-      setReviewsVisible(true);
+      const userId = firebase_auth.currentUser.uid;
+      await AsyncStorage.setItem(`profilePic_${userId}`, uri);
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error('Error saving profile picture:', error);
     }
   };
 
-  // Handle ratings from database and show ratings screen
-  const handleMyRatingsPress = async () => {
-    try {
-      const fetchedRatings = await getRatings(db);
-      setRatings(fetchedRatings);
-      setRatingsVisible(true);
-    } catch (error) {
-      console.error('Error fetching ratings:', error);
-    }
-  };
-
-
-
-  // Functions to update profile picture
+  // Function to pick an image from the gallery
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
@@ -59,13 +45,15 @@ const ProfileScreen = () => {
       aspect: [1, 1],
       quality: 1,
     });
+    
     if (!result.canceled) {
-      setProfilePic(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setProfilePic(uri);
+      saveProfilePic(uri);
     }
   };
-  
 
-  // Function to take photo for profile picture
+  // Function to take a photo using the camera
   const takePhoto = async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
@@ -77,12 +65,15 @@ const ProfileScreen = () => {
       aspect: [1, 1],
       quality: 1,
     });
+    
     if (!result.canceled) {
-      setProfilePic(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setProfilePic(uri);
+      saveProfilePic(uri);
     }
   };
-  
-  // Alert to update profile picture
+
+  // Function to prompt the user to update the profile picture
   const handleProfilePicPress = () => {
     Alert.alert(
       'Update Profile Picture',
@@ -90,84 +81,25 @@ const ProfileScreen = () => {
       [
         { text: 'Take Photo', onPress: takePhoto },
         { text: 'Choose from Library', onPress: pickImage },
-        { text: 'Cancel'},
+        { text: 'Cancel' },
       ],
       { cancelable: true }
     );
   };
 
-  // Render a rating item as album name plus a star rating (out of 5 stars)
-  const renderRatingItem = ({ item }) => {
-    const stars = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
-    return (
-      <View style={styles.ratingItem}>
-        <Text style={styles.ratingAlbum}>{item.album}</Text>
-        <Text style={styles.ratingStars}>{stars}</Text>
-      </View>
-    );
-  };
-
-  // Render function for displaying review screen with album name and text
-  const renderReviewItem = ({ item }) => (
-    <View style={styles.reviewItem}>
-      <Text style={styles.reviewAlbum}>{item.album}</Text>
-      <Text style={styles.reviewText}>{item.review}</Text>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <TouchableOpacity style={styles.profilePicContainer} onPress={handleProfilePicPress}>
-      <Image source={{ uri: profilePic }} style={[styles.profilePic, { resizeMode: 'cover' }]} />
+        <Image source={{ uri: profilePic }} style={[styles.profilePic, { resizeMode: 'cover' }]} />
       </TouchableOpacity>
-
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleMyReviewsPress}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('MyReviewsScreen')}>
           <Text style={styles.buttonText}>My Reviews</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={handleMyRatingsPress}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('MyRatingsScreen')}>
           <Text style={styles.buttonText}>My Ratings</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>My Lists</Text>
-        </TouchableOpacity>
       </View>
-
-    {/* Reviews modal displays stored reviews when reviewsVisible is true */}
-      {reviewsVisible && (
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalHeader}>My Reviews</Text>
-          {reviews.length > 0 ? (
-            <FlatList
-              data={reviews}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderReviewItem}
-            />
-          ) : (
-            <Text>No reviews found.</Text>
-          )}
-          <Button title="Close Reviews" onPress={() => setReviewsVisible(false)} color="#3D5A80" />
-        </View>
-      )}
-
-      {/* Ratings modal displays stored ratings when ratingsVisible is true */}
-      {ratingsVisible && (
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalHeader}>My Ratings</Text>
-          {ratings.length > 0 ? (
-            <FlatList
-              data={ratings}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderRatingItem}
-            />
-          ) : (
-            <Text>No ratings found.</Text>
-          )}
-          <Button title="Close Ratings" onPress={() => setRatingsVisible(false)} color="#3D5A80" />
-        </View>
-      )}
     </SafeAreaView>
   );
 };
@@ -175,82 +107,12 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#121212',
-    alignItems: 'center',
-  },
-  profilePicContainer: {
-    marginTop: 100,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  profilePic: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: 'white',
-  },
-  buttonsContainer: {
-    width: '100%',
-  },
-  button: {
-    backgroundColor: '#1E1E1E',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    marginTop: 15,
-    width: '100%',
-    backgroundColor: '#1E1E1E',
-    padding: 15,
-    borderRadius: 8,
-  },
-  modalHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: 'white',
-    textAlign: 'center',
-  },
-  reviewItem: {
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-    paddingBottom: 10,
-  },
-  reviewAlbum: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  reviewText: {
-    fontSize: 14,
-    color: 'grey',
-  },
-  ratingItem: {
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-    paddingBottom: 10,
-  },
-  ratingAlbum: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  ratingStars: {
-    fontSize: 18,
-    color: 'gold',
-  },
-
+  container: { flex: 1, backgroundColor: '#121212', alignItems: 'center' },
+  profilePicContainer: { marginTop: 100, marginBottom: 20, alignItems: 'center' },
+  profilePic: { width: 120, height: 120, borderRadius: 60, borderWidth: 3, borderColor: 'white' },
+  buttonsContainer: { width: '100%', alignItems: 'center' },
+  button: { backgroundColor: '#1E1E1E', paddingVertical: 15, paddingHorizontal: 20, borderRadius: 8, marginVertical: 10, alignItems: 'center' },
+  buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
 });
+
+

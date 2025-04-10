@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, View, Text, FlatList, Image, ActivityIndicator, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { getAccessToken } from '../services/SpotifyTokenService';
+import { firebase_auth } from '../firebaseConfig'
 import AlbumActionMenu from '../components/ActionMenu';
 import RatingModal from '../components/RatingModal';
 import ReviewModal from '../components/ReviewModal';
@@ -64,7 +65,8 @@ export default function HomeScreen() {
   // Functions to submit review or rating, show confirmation and close modal
   const submitReview = async (reviewText) => {
     try {
-      await addReview(db, selectedAlbum.name, reviewText, 0);
+      const userId = firebase_auth.currentUser.uid;
+      await addReview(db, selectedAlbum.name, selectedAlbum.images?.[0]?.url || '', reviewText, 0, userId);
       Alert.alert('Review saved!');
       setReviewModalVisible(false);
     } catch (err) {
@@ -74,7 +76,8 @@ export default function HomeScreen() {
 
   const submitRating = async (rating) => {
     try {
-      await addRating(db, selectedAlbum.name, rating);
+      const userId = firebase_auth.currentUser.uid;
+      await addRating(db, selectedAlbum.name, selectedAlbum.images?.[0]?.url || '', rating, userId);
       Alert.alert('Rating saved!');
       setRatingModalVisible(false);
     } catch (err) {
@@ -115,7 +118,6 @@ export default function HomeScreen() {
           renderItem={renderAlbumItem}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
-          contentContainerStyle={styles.listContent}
         />
       </View>
       <AlbumActionMenu
@@ -145,18 +147,11 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#121212' },
   container: { flex: 1, backgroundColor: '#121212', paddingHorizontal: 10 },
   header: { color: 'white', fontSize: 24, fontWeight: 'bold', marginVertical: 10, marginLeft: 5 },
-  listContent: { paddingBottom: 20 },
   columnWrapper: { justifyContent: 'space-between' },
-  albumContainer: {
-    flex: 1,
-    backgroundColor: '#1E1E1E',
-    margin: 5,
-    borderRadius: 8,
-    padding: 10,
-  },
+  albumContainer: { flex: 1, backgroundColor: '#1E1E1E', margin: 5, borderRadius: 8, padding: 10 },
   albumImage: { width: '100%', aspectRatio: 1, borderRadius: 8, marginBottom: 8 },
   albumTitle: { color: 'white', fontSize: 14, fontWeight: 'bold', marginBottom: 2 },
-  albumArtist: { color: '#AAAAAA', fontSize: 12 },
+  albumArtist: { color: 'grey', fontSize: 12 },
   loadingContainer: { flex: 1, backgroundColor: '#121212', justifyContent: 'center', alignItems: 'center' },
   errorText: { color: 'white', fontSize: 16 },
 });
